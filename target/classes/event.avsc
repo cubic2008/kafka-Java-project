@@ -1,0 +1,14 @@
+{
+	"namespace": "com.cubic.kafka.datatypes",
+	"type": "record",
+	"name": "Event",
+	"fields": [
+		{"name": "eventId", "type": "string", "doc":"The unique id that identifies the event"},
+		{"name": "time", "type": "long", "doc":"Time the event was generated as UTC milliseconds from the epoch"},
+		{"name":"status", "type":{
+							"type":"enum", 
+							"name":"EventStatus", 
+							"symbols":["Critical","Major","Minor","Warning"]},
+							"doc":"The allowed values of event types that our applictions will use to emit events"}
+	]
+}
