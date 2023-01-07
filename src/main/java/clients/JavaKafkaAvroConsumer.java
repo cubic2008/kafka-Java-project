@@ -1,4 +1,4 @@
-package app;
+package clients;
 
 import java.time.Duration;
 import java.util.Arrays;

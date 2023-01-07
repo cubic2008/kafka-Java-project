@@ -24,7 +24,12 @@ public class EventStatusPartitioner implements Partitioner {
 		if (event.getStatus() == AppEventStatus.Creation) {
 			return partitionSize - 1;
 		} else {
-			return event.getStatus().ordinal() % (partitionSize - 1);
+			int partitionNo = 1;
+			if (partitionSize > 1) {
+				partitionNo = partitionSize - 1;
+			}
+//			return event.getStatus().ordinal() % (partitionSize - 1);
+			return event.getStatus().ordinal() % partitionNo;
 		}
 	}
 

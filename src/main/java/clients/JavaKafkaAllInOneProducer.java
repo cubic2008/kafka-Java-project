@@ -1,4 +1,4 @@
-package app;
+package clients;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -8,6 +8,7 @@ import java.util.concurrent.Future;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
@@ -37,7 +38,8 @@ public class JavaKafkaAllInOneProducer {
 		props.put("value.serializer", "serializers.AppEventSerde");
 		props.put("schema.registry.url", "http://localhost:8081");
 		props.put("partitioner.class", "partitioners.EventStatusPartitioner");
-		props.put("interceptor.classes", "interceptors.AppEventProducerInterceptor");
+//		props.put("interceptor.classes", "interceptors.AppEventProducerInterceptor");
+		props.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, "interceptors.AppEventProducerInterceptor");
 		props.put("acks", "all");
 		props.put("retries", "3");
 		props.put("max.in.flight.requests.per.connection", "5");

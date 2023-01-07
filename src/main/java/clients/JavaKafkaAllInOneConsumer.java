@@ -1,4 +1,4 @@
-package app;
+package clients;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -15,7 +15,7 @@ import org.apache.kafka.common.TopicPartition;
 
 import domains.AppEvent;
 
-public class JavaKafkaCustomSerdeWithPartitionerAndRebalanceListenerConsumer {
+public class JavaKafkaAllInOneConsumer {
 
 	public static void main(String[] args) {
 		
@@ -23,7 +23,7 @@ public class JavaKafkaCustomSerdeWithPartitionerAndRebalanceListenerConsumer {
 
 	}
 
-	private static void receiveMessages(String topic, String groupId) {
+	private static void receiveMessages(String topic, String groupId, Integer...partitions) {
 		Properties props = new Properties();
 		props.put("bootstrap.servers", "localhost:9092,localhost:9093");
 		props.put("group.id", groupId);
@@ -33,37 +33,21 @@ public class JavaKafkaCustomSerdeWithPartitionerAndRebalanceListenerConsumer {
 		props.put("value.deserializer", "serializers.AppEventSerde");
 		props.put("schema.registry.url", "http://localhost:8081");
 		props.put("auto.offset.reset", "earliest");
+		props.put("interceptor.classes", "interceptors.AppEventConsumerInterceptor");
 		try (KafkaConsumer<String, AppEvent> consumer = new KafkaConsumer<>(props)) {
-//			consumer.subscribe(Arrays.asList(topic));
-			consumer.subscribe(Arrays.asList(topic),
-		              new ConsumerRebalanceListener() {
-		                  @Override
-		                  public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
-		                      System.out.printf("onPartitionsRevoked - partitions: %s%n",
-		                              formatPartitions(partitions));
-		                  }
-
-		                  @Override
-		                  public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-		                      System.out.printf("onPartitionsAssigned - partitions: %s%n", 
-		                              formatPartitions(partitions));
-		                  }
-		              });
+			if (partitions.length == 0) {
+				consumer.subscribe(Arrays.asList(topic));
+			} else {
+				List<TopicPartition> topicPartitions = Arrays.asList(partitions).stream().map(p -> new TopicPartition(topic, p)).collect(Collectors.toList());
+				consumer.assign(topicPartitions);
+			}
 			while (true) {
 				ConsumerRecords<String, AppEvent> records = consumer.poll(Duration.ofMillis(100));
 				for (ConsumerRecord<String, AppEvent> record : records) {
 					System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(),record.key(), record.value());
 				}
-				
 			}
 		}
 	}
 	
-	private static List<String> formatPartitions(Collection<TopicPartition> partitions) {
-	      return partitions.stream().map(topicPartition ->
-	              String.format("topic: %s, partition: %s", topicPartition.topic(), topicPartition.partition()))
-	                       .collect(Collectors.toList());
-	}
-
-
 }

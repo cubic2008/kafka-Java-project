@@ -1,29 +1,24 @@
-package app;
+package clients;
 
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
-import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.TopicPartition;
 
 import domains.AppEvent;
 
-public class JavaKafkaCustomSerdeWithPartitionerConsumer {
+public class JavaKafkaCustomSerdeConsumer {
 
 	public static void main(String[] args) {
 		
-		receiveMessages("helloworld-partition", "helloconsumer");
+		receiveMessages("helloworld-cust-serde", "helloconsumer");
 
 	}
 
-	private static void receiveMessages(String topic, String groupId, Integer...partitions) {
+	private static void receiveMessages(String topic, String groupId) {
 		Properties props = new Properties();
 		props.put("bootstrap.servers", "localhost:9092,localhost:9093");
 		props.put("group.id", groupId);
@@ -32,21 +27,17 @@ public class JavaKafkaCustomSerdeWithPartitionerConsumer {
 		props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 		props.put("value.deserializer", "serializers.AppEventSerde");
 		props.put("schema.registry.url", "http://localhost:8081");
-		props.put("auto.offset.reset", "earliest");
 		try (KafkaConsumer<String, AppEvent> consumer = new KafkaConsumer<>(props)) {
-			if (partitions.length == 0) {
-				consumer.subscribe(Arrays.asList(topic));
-			} else {
-				List<TopicPartition> topicPartitions = Arrays.asList(partitions).stream().map(p -> new TopicPartition(topic, p)).collect(Collectors.toList());
-				consumer.assign(topicPartitions);
-			}
+			consumer.subscribe(Arrays.asList(topic));
 			while (true) {
 				ConsumerRecords<String, AppEvent> records = consumer.poll(Duration.ofMillis(100));
 				for (ConsumerRecord<String, AppEvent> record : records) {
 					System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(),record.key(), record.value());
 				}
+				
 			}
 		}
 	}
-	
+
+
 }

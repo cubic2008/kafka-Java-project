@@ -1,4 +1,4 @@
-package app;
+package clients;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -8,13 +8,11 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 
-import domains.AppEvent;
-
-public class JavaKafkaCustomSerdeConsumer {
+public class JavaKafkaConsumer {
 
 	public static void main(String[] args) {
 		
-		receiveMessages("helloworld-cust-serde", "helloconsumer");
+		receiveMessages("helloworld", "helloconsumer");
 
 	}
 
@@ -25,13 +23,12 @@ public class JavaKafkaCustomSerdeConsumer {
 		props.put("enable.auto.commit", "true");
 		props.put("auto.commit.interval.ms", "1000");
 		props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-		props.put("value.deserializer", "serializers.AppEventSerde");
-		props.put("schema.registry.url", "http://localhost:8081");
-		try (KafkaConsumer<String, AppEvent> consumer = new KafkaConsumer<>(props)) {
+		props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+		try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)) {
 			consumer.subscribe(Arrays.asList(topic));
 			while (true) {
-				ConsumerRecords<String, AppEvent> records = consumer.poll(Duration.ofMillis(100));
-				for (ConsumerRecord<String, AppEvent> record : records) {
+				ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+				for (ConsumerRecord<String, String> record : records) {
 					System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(),record.key(), record.value());
 				}
 				
